@@ -1,0 +1,12 @@
+---
+apiVersion: v2
+name: tailscale-relay
+version: 0.1.5
+appVersion: v1.24.2
+description: Deploy a tailscale relay on top of kubernetes
+home: https://github.com/zeet-dev/helm-charts
+sources:
+  - https://github.com/zeet-dev/helm-charts/tree/main/charts/tailscale-relay
+maintainers:
+  - name: zeet
+    email: support@zeet.co
