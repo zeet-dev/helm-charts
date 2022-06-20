@@ -1,0 +1,117 @@
+{{- if .Values.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ template "posthog.fullname" . }}
+  labels: {{- include "_snippet-metadata-labels-common" . | nindent 4 }}
+  annotations: {{- include "_snippet-metadata-annotations-common" . | nindent 4 }}
+    {{- if (eq (include "ingress.type" .) "nginx") }}
+    kubernetes.io/ingress.class: "nginx"
+    {{- end }}
+    {{- if (eq (include "ingress.type" .) "clb") }}
+    kubernetes.io/ingress.class: "gce"
+    {{- if not (.Values.ingress.gcp.secretName) }}
+    networking.gke.io/managed-certificates: "{{ .Release.Name }}-gke-cert"
+    {{- end }}
+    networking.gke.io/v1beta1.FrontendConfig: "{{ .Release.Name }}-frontend-config"
+    {{- if .Values.ingress.gcp.ip_name }}
+    kubernetes.io/ingress.global-static-ip-name: {{ .Values.ingress.gcp.ip_name | quote }}
+    {{- end }}
+   {{- end }}
+   {{- if (and (eq (include "ingress.type" .) "nginx") .Values.ingress.nginx.redirectToTLS "true") }}
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+   {{- if eq (include "ingress.letsencrypt" .) "true"}}
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+   {{- end }}
+   {{- end }}
+   {{- if .Values.ingress.annotations }}
+    {{- range $key, $value := .Values.ingress.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+   {{- end }}
+spec:
+  {{- if and .Values.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- end }}
+  {{- if or (eq (include "ingress.letsencrypt" .) "true") (or (.Values.ingress.secretName) (.Values.ingress.gcp.secretName)) }}
+  tls:
+  - hosts:
+    - {{ .Values.ingress.hostname }}
+    {{- if .Values.ingress.secretName }}
+    secretName: {{ .Values.ingress.secretName }}
+    {{- else if eq (include "ingress.letsencrypt" .) "true" }}
+    secretName: nginx-letsencrypt-{{ template "posthog.fullname" . }}
+    {{- else }}
+    secretName: {{ .Values.ingress.gcp.secretName }}
+    {{- end }}
+  {{- end }}
+  rules:
+  {{- if .Values.ingress.hostname }}
+    - host: {{ .Values.ingress.hostname }}
+      http:
+  {{- else }}
+    - http:
+  {{- end }}
+        paths:
+          {{- if (ne (include "ingress.type" .) "clb") }}
+          - pathType: Prefix
+            path: "/"
+          {{- else }}
+          - pathType: ImplementationSpecific
+            path: "/*"
+          {{- end }}
+            backend:
+              service:
+                name: {{ template "posthog.fullname" . }}-web
+                port:
+                  number: {{ .Values.service.externalPort }}
+          {{- if (ne (include "ingress.type" .) "clb") }}
+          - pathType: Prefix
+            path: "/batch"
+          {{- else }}
+          - pathType: ImplementationSpecific
+            path: "/batch/*"
+          {{- end }}
+            backend: &INGESTION
+              service:
+                name: {{ template "posthog.fullname" . }}-events
+                port:
+                  number: {{ .Values.service.externalPort }}
+          {{- if (ne (include "ingress.type" .) "clb") }}
+          - pathType: Prefix
+            path: "/capture"
+            backend: *INGESTION
+          - pathType: Prefix
+            path: "/decide"
+            backend: *INGESTION
+          - pathType: Prefix
+            path: "/e"
+            backend: *INGESTION
+          - pathType: Prefix
+            path: "/track"
+            backend: *INGESTION
+          - pathType: Prefix
+            path: "/s"
+            backend: *INGESTION
+          {{- else }}
+          - pathType: ImplementationSpecific
+            path: "/capture/*"
+            backend: *INGESTION
+          - pathType: ImplementationSpecific
+            path: "/decide/*"
+            backend: *INGESTION
+          - pathType: ImplementationSpecific
+            path: "/e/*"
+            backend: *INGESTION
+          - pathType: ImplementationSpecific
+            path: "/track/*"
+            backend: *INGESTION
+          - pathType: ImplementationSpecific
+            path: "/s/*"
+            backend: *INGESTION
+          {{- end }}
+{{- if .Values.ingress.tls }}
+{{ toYaml .Values.ingress.tls | indent 4 }}
+{{- end -}}
+{{- end -}}

@@ -1,0 +1,1195 @@
+# -- Cloud service being deployed on (example: `aws`, `azure`, `do`, `gcp`, `other`).
+cloud: zeet
+
+# -- Notification email for notifications to be sent to from the PostHog stack
+notificationEmail:
+
+image:
+  # -- PostHog image repository to use.
+  repository: posthog/posthog
+  # -- PostHog image SHA to use (example: `sha256:20af35fca6756d689d6705911a49dd6f2f6631e001ad43377b605cfc7c133eb4`).
+  sha:
+  # -- PostHog image tag to use (example: `release-1.35.0`).
+  tag:
+  # -- PostHog default image. Do not overwrite, use `image.sha` or `image.tag` instead.
+  default: ":release-1.36.1"
+  # -- PostHog image pull policy.
+  pullPolicy: IfNotPresent
+
+# -- Sentry endpoint to send errors to.
+sentryDSN:
+
+# -- Django SECRET_KEY to use for hashing e.g. passwords. See
+# https://docs.djangoproject.com/en/4.0/ref/settings/#secret-key
+posthogSecretKey:
+  # -- Specify that the key should be pulled from an existing secret key. By
+  # default the chart will generate a secret and create a Kubernetes Secret
+  # containing it.
+  existingSecret:
+  # -- Specify the key within the secret from which SECRET_KEY should be taken.
+  existingSecretKey: posthog-secret
+
+# -- Environment variables to inject into every PostHog deployment.
+env: []
+# env:
+#   - name: FOO
+#     value: bar
+
+
+migrate:
+  # -- Whether to install the PostHog migrate job or not.
+  enabled: true
+
+
+events:
+  # -- Whether to install the PostHog events stack or not.
+  enabled: true
+
+  # -- Count of events pods to run. This setting is ignored if `events.hpa.enabled` is set to `true`.
+  replicacount: 1
+
+  hpa:
+    # -- Whether to create a HorizontalPodAutoscaler for the events stack.
+    enabled: false
+    # -- CPU threshold percent for the events stack HorizontalPodAutoscaler.
+    cputhreshold: 60
+    # -- Min pods for the events stack HorizontalPodAutoscaler.
+    minpods: 1
+    # -- Max pods for the events stack HorizontalPodAutoscaler.
+    maxpods: 10
+  # -- Container security context for the events stack HorizontalPodAutoscaler.
+  securityContext:
+    enabled: false
+  # -- Pod security context for the events stack HorizontalPodAutoscaler.
+  podSecurityContext:
+    enabled: false
+
+web:
+  # -- Whether to install the PostHog web stack or not.
+  enabled: true
+
+  # -- Count of web pods to run. This setting is ignored if `web.hpa.enabled` is set to `true`.
+  replicacount: 1
+
+  hpa:
+    # -- Whether to create a HorizontalPodAutoscaler for the web stack.
+    enabled: false
+    # -- CPU threshold percent for the web stack HorizontalPodAutoscaler.
+    cputhreshold: 60
+    # -- Min pods for the web stack HorizontalPodAutoscaler.
+    minpods: 1
+    # -- Max pods for the web stack HorizontalPodAutoscaler.
+    maxpods: 10
+
+  # -- Resource limits for web service.
+  resources:
+    {}
+
+  # -- Additional env variables to inject into the web stack deployment.
+  env:
+    # -- Set google oauth 2 key. Requires posthog ee license.
+    - name: SOCIAL_AUTH_GOOGLE_OAUTH2_KEY
+      value:
+    # -- Set google oauth 2 secret. Requires posthog ee license.
+    - name: SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET
+      value:
+    # -- Set google oauth 2 whitelisted domains users can log in from.
+    - name: SOCIAL_AUTH_GOOGLE_OAUTH2_WHITELISTED_DOMAINS
+      value: "posthog.com"
+
+  internalMetrics:
+    # -- Whether to capture information on operation of posthog into posthog, exposed in /instance/status page
+    capture: true
+
+  # -- Node labels for web stack deployment.
+  nodeSelector: {}
+  # -- Toleration labels for web stack deployment.
+  tolerations: []
+  # -- Affinity settings for web stack deployment.
+  affinity: {}
+  # :TODO:
+  secureCookies: true
+
+  livenessProbe:
+    # -- The liveness probe failure threshold
+    failureThreshold: 5
+    # -- The liveness probe initial delay seconds
+    initialDelaySeconds: 50
+    # -- The liveness probe period seconds
+    periodSeconds: 10
+    # -- The liveness probe success threshold
+    successThreshold: 1
+    # -- The liveness probe timeout seconds
+    timeoutSeconds: 2
+
+  readinessProbe:
+    # -- The readiness probe failure threshold
+    failureThreshold: 10
+    # -- The readiness probe initial delay seconds
+    initialDelaySeconds: 50
+    # -- The readiness probe period seconds
+    periodSeconds: 10
+    # -- The readiness probe success threshold
+    successThreshold: 1
+    # -- The readiness probe timeout seconds
+    timeoutSeconds: 2
+  # -- Container security context for web stack deployment.
+  securityContext:
+    enabled: false
+  # -- Pod security context for web stack deployment.
+  podSecurityContext:
+    enabled: false
+
+worker:
+  # -- Whether to install the PostHog worker stack or not.
+  enabled: true
+
+  # -- Count of worker pods to run. This setting is ignored if `worker.hpa.enabled` is set to `true`.
+  replicacount: 1
+
+  hpa:
+    # -- Whether to create a HorizontalPodAutoscaler for the worker stack.
+    enabled: false
+    # -- CPU threshold percent for the worker stack HorizontalPodAutoscaler.
+    cputhreshold: 60
+    # -- Min pods for the worker stack HorizontalPodAutoscaler.
+    minpods: 1
+    # -- Max pods for the worker stack HorizontalPodAutoscaler.
+    maxpods: 10
+
+  # -- Additional env variables to inject into the worker stack deployment.
+  env: []
+
+  # -- Resource limits for the worker stack deployment.
+  resources:
+    {}
+
+  # -- Node labels for the worker stack deployment.
+  nodeSelector: {}
+  # -- Toleration labels for the worker stack deployment.
+  tolerations: []
+  # -- Affinity settings for the worker stack deployment.
+  affinity: {}
+
+  # -- Container security context for the worker stack deployment.
+  securityContext:
+    enabled: false
+  # -- Pod security context for the worker stack deployment.
+  podSecurityContext:
+    enabled: false
+
+plugins:
+  # -- Whether to install the PostHog plugin-server stack or not.
+  # This service handles data ingestion into ClickHouse, running apps and async jobs.
+  # See `pluginsAsync` to scale this separately.
+  enabled: true
+
+  # -- Count of plugin-server pods to run. This setting is ignored if `plugins.hpa.enabled` is set to `true`.
+  replicacount: 1
+
+  hpa:
+    # -- Whether to create a HorizontalPodAutoscaler for the plugin stack.
+    enabled: false
+    # -- CPU threshold percent for the plugin-server stack HorizontalPodAutoscaler.
+    cputhreshold: 60
+    # -- Min pods for the plugin-server stack HorizontalPodAutoscaler.
+    minpods: 1
+    # -- Max pods for the plugin-server stack HorizontalPodAutoscaler.
+    maxpods: 10
+
+  # -- Additional env variables to inject into the plugin-server stack deployment.
+  env: []
+
+  # -- Resource limits for the plugin-server stack deployment.
+  resources:
+    {}
+
+  # -- Node labels for the plugin-server stack deployment.
+  nodeSelector: {}
+  # -- Toleration labels for the plugin-server stack deployment.
+  tolerations: []
+  # -- Affinity settings for the plugin-server stack deployment.
+  affinity: {}
+
+  # -- Container security context for the plugin-server stack deployment.
+  securityContext:
+    enabled: false
+  # -- Pod security context for the plugin-server stack deployment.
+  podSecurityContext:
+    enabled: false
+
+  livenessProbe:
+    # -- The liveness probe failure threshold
+    failureThreshold: 3
+    # -- The liveness probe initial delay seconds
+    initialDelaySeconds: 10
+    # -- The liveness probe period seconds
+    periodSeconds: 10
+    # -- The liveness probe success threshold
+    successThreshold: 1
+    # -- The liveness probe timeout seconds
+    timeoutSeconds: 2
+
+  readinessProbe:
+    # -- The readiness probe failure threshold
+    failureThreshold: 3
+    # -- The readiness probe initial delay seconds
+    initialDelaySeconds: 50
+    # -- The readiness probe period seconds
+    periodSeconds: 30
+    # -- The readiness probe success threshold
+    successThreshold: 1
+    # -- The readiness probe timeout seconds
+    timeoutSeconds: 5
+
+
+pluginsAsync:
+  # -- Whether to install the PostHog plugin-server async stack or not.
+  # If disabled (default), plugins service handles both ingestion and running of async tasks.
+  # Allows for separate scaling of this service.
+  enabled: false
+
+  # -- Count of plugin-server-async pods to run. This setting is ignored if `pluginsAsync.hpa.enabled` is set to `true`.
+  replicacount: 1
+
+  hpa:
+    # -- Whether to create a HorizontalPodAutoscaler for the plugin stack.
+    enabled: false
+    # -- CPU threshold percent for the plugin-server stack HorizontalPodAutoscaler.
+    cputhreshold: 60
+    # -- Min pods for the plugin-server stack HorizontalPodAutoscaler.
+    minpods: 1
+    # -- Max pods for the plugin-server stack HorizontalPodAutoscaler.
+    maxpods: 10
+
+  # -- Additional env variables to inject into the plugin-server stack deployment.
+  env: []
+
+  # -- Resource limits for the plugin-server stack deployment.
+  resources:
+    {}
+
+  # -- Node labels for the plugin-server stack deployment.
+  nodeSelector: {}
+  # -- Toleration labels for the plugin-server stack deployment.
+  tolerations: []
+  # -- Affinity settings for the plugin-server stack deployment.
+  affinity: {}
+
+  # -- Container security context for the plugin-server stack deployment.
+  securityContext:
+    enabled: false
+  # -- Pod security context for the plugin-server stack deployment.
+  podSecurityContext:
+    enabled: false
+
+  livenessProbe:
+    # -- The liveness probe failure threshold
+    failureThreshold: 3
+    # -- The liveness probe initial delay seconds
+    initialDelaySeconds: 10
+    # -- The liveness probe period seconds
+    periodSeconds: 10
+    # -- The liveness probe success threshold
+    successThreshold: 1
+    # -- The liveness probe timeout seconds
+    timeoutSeconds: 2
+
+  readinessProbe:
+    # -- The readiness probe failure threshold
+    failureThreshold: 3
+    # -- The readiness probe initial delay seconds
+    initialDelaySeconds: 50
+    # -- The readiness probe period seconds
+    periodSeconds: 30
+    # -- The readiness probe success threshold
+    successThreshold: 1
+    # -- The readiness probe timeout seconds
+    timeoutSeconds: 5
+
+
+
+email:
+  # -- SMTP service host.
+  host:
+  # -- SMTP service port.
+  port:
+  # -- SMTP service user.
+  user:
+  # -- SMTP service password.
+  password:
+  # -- Name of an existing Kubernetes secret object containing the SMTP service password.
+  existingSecret: ""
+  # -- Name of the key pointing to the password in your Kubernetes secret.
+  existingSecretKey: ""
+  # -- Use TLS to authenticate to the SMTP service.
+  use_tls: true
+  # -- Use SSL to authenticate to the SMTP service.
+  use_ssl:
+  # -- Outbound email sender to use.
+  from_email:
+
+
+saml:
+  # -- Whether password-based login is disabled and users automatically redirected to SAML login. Requires SAML to be properly configured.
+  enforced: false
+  # -- Whether SAML should be completely disabled. If set at build time, this will also prevent SAML dependencies from being installed.
+  disabled: false
+  # -- Entity ID from your SAML IdP.
+  # entity_id: "id-from-idp-5f9d4e-47ca-5080"
+  entity_id:
+  # -- Assertion Consumer Service URL from your SAML IdP.
+  # acs_url: "https://mysamlidp.com/saml2"
+  acs_url:
+  # -- Public X509 certificate from your SAML IdP to validate SAML assertions
+  # x509_cert: |
+  # MIID3DCCAsSgAwIBAgIUdriHo8qmAU1I0gxsI7cFZHmna38wDQYJKoZIhvcNAQEF
+  # BQAwRTEQMA4GA1UECgwHUG9zdEhvZzEVMBMGA1UECwwMT25lTG9naW4gSWRQMRow
+  # GAYDVQQDDBFPbmVMb2dpbiBBY2NvdW50IDAeFw0yMTA4MTYyMTUyMzNaFw0yNjA4
+  # MTYyMTUyMzNaMEUxEDAOBgNVBAoMB1Bvc3RIb2cxFTATBgNVBAsMDE9uZUxvZ2lu
+  # IElkUDEaMBgGA1UEAwwRT25lTG9naW4gQWNjb3VudCAwggEiMA0GCSqGSIb3DQEB
+  # AQUAA4IBDwAwggEKAoIBAQDEfUWFIU38ztF2EgijVsIbnlB8OIwkjZU8c34B9VwZ
+  # BQQUSxbrkuT9AX/5O27G04TBCHFZsXRId+ABSjVo8daCPu0d38Quo9KS3V3627Nw
+  # YcTYsje95lB02E/PgfiEQ6ZGCOV0P4xY9C99d26PoYTcoMT1S73jDDMOFtoD5WXG
+  # ZsKqwBks1jbLkv6RYoFBlZX00aGzOXDzUXI59/0c15KR4EzgTad0t6CU7X0HZ2Qf
+  # xGUiRb7hDLvgSby0SzpQpYUyYDnN9aSNYzpu1hiyIqrhQ7kZNy7LyGBz0UIuIImF
+  # pF6A3bzzrR4wdacFY9U0vmqFXXcepxuT5p2UyAxwbLeDAgMBAAGjgcMwgcAwDAYD
+  # VR0TAQH/BAIwADAdBgNVHQ4EFgQURLVVKanZPoXGEfYr1HmlaCEoD54wgYAGA1Ud
+  # IwR5MHeAFES1VSmp2T6FxhH2K9R5pWghKA+eoUmkRzBFMRAwDgYDVQQKDAdQb3N0
+  # SG9nMRUwEwYDVQQLDAxPbmVMb2dpbiBJZFAxGjAYBgNVBAMMEU9uZUxvZ2luIEFj
+  # Y291bnQgghR2uIejyqYBTUjSDGwjtwVkeadrfzAOBgNVHQ8BAf8EBAMCB4AwDQYJ
+  # KoZIhvcNAQEFBQADggEBALP5lhlcV8avbnVnqO7PBtlS2mVOJ2B7obm50OaJCbRh
+  # t0I/dcNssWhT31/zmtNfKtrFicNImlKhdirApxpIp1WLEFY01a40GLmO6FG/WVvB
+  # EzwXonWP+cP8jYQnqZ15JkuHjP3DYJuOak2GqAJAfaGO67q6IkRZzRq6UwEUgNJD
+  # TlcsJAFaJDrcw07TY3mRFragdzGC7Xt/CM6r/0seY3+VBwMUMiJlvawcyQxap7om
+  # EdgmQkJA8Dk6f+geI+U7jV3orkPiofBJi9K6cp5Fd9usut8jwi3GYg2wExNGbhF4
+  # wlMD1LOhymQGBnTXPk+000nkBnYdqEnqXzVpDiCG1Pc=
+  x509_cert:
+  # -- Name of attribute that contains the permanent ID of the user in SAML assertions.
+  # attr_permanent_id: "nameID"
+  attr_permanent_id:
+  # -- Name of attribute that contains the first name of the user in SAML assertions.
+  # attr_first_name: "firstName"
+  attr_first_name:
+  # -- Name of attribute that contains the last name of the user in SAML assertions.
+  # attr_last_name: "lastName"
+  attr_last_name:
+  # -- Name of attribute that contains the email of the user in SAML assertions.
+  # attr_email: "email"
+  attr_email:
+
+
+service:
+  # -- PostHog service name.
+  name: posthog
+  # -- PostHog service type.
+  type: NodePort
+  externalPort: 8000
+  internalPort: 8000
+
+  # -- PostHog service annotations.
+  annotations: {}
+
+
+###
+###
+### ---- CERT-MANAGER ----
+###
+###
+cert-manager:
+  # -- Whether to install `cert-manager` resources.
+  enabled: false
+  # -- Whether to install `cert-manager` CRDs.
+  installCRDs: true
+  # -- Who to email if the certificate is about to expire
+  # -- Defaults to `notificationEmail` if it is available
+  # -- Base default is noreply@<your-ingress-hostname>
+  email: null
+
+  #
+  # [Workaround] - do not use the local DNS for the 'cert-manager' pods since it would return local IPs
+  # and break self checks.
+  #
+  # For more info see:
+  #   - https://github.com/jetstack/cert-manager/issues/1292
+  #   - https://github.com/jetstack/cert-manager/issues/3238
+  #   - https://github.com/jetstack/cert-manager/issues/4286
+  #   - https://github.com/compumike/hairpin-proxy
+  #
+  # This has some side effects, like 'cert-manager' pods not being able to resolve cluster-local names,
+  # but so far this has not caused issues (and we don't expect it to do so).
+  #
+  podDnsPolicy: None
+  podDnsConfig:
+    nameservers:
+      - 8.8.8.8
+      - 1.1.1.1
+      - 208.67.222.222
+
+
+###
+###
+### ---- INGRESS ----
+###
+###
+ingress:
+  # -- Enable ingress controller resource
+  enabled: true
+  # -- IngressClass Name
+  className: traefik
+  # -- Ingress handler type. Defaults to `nginx` if nginx is enabled and to `clb` on gcp.
+  type:
+  # -- URL to address your PostHog installation. You will need to set up DNS after installation
+  hostname:
+  gcp:
+    # -- Specifies the name of the global IP address resource to be associated with the google clb
+    ip_name: "posthog"
+    # -- If true, will force a https redirect when accessed over http
+    forceHttps: true
+    # -- Specifies the name of the tls secret to be used by the ingress. If not specified a managed certificate will be generated.
+    secretName: ""
+  # -- Whether to enable letsencrypt. Defaults to true if hostname is defined and nginx and cert-manager are enabled otherwise false.
+  letsencrypt:
+  nginx:
+    # -- Whether nginx is enabled
+    enabled: false
+    # -- Whether to redirect to TLS with nginx ingress.
+    redirectToTLS: true
+  # -- Extra annotations
+  annotations:
+    traefik.ingress.kubernetes.io/router.tls: 'true'
+  # -- TLS secret to be used by the ingress.
+  secretName:
+
+
+ingress-nginx:
+  controller:
+    config:
+      # -- Whether to forward "X-Forwarded-*" headers to upstream services.
+      # -- This is needed to ensure the PostHog application knows e.g. if the
+      # -- downstream proxy is using a secure connection. See the official
+      # -- [ingress-nginx documentation](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/#use-forwarded-headers)
+      use-forwarded-headers: "true"
+
+    # Uncomment those lines if you want Prometheus server to scrape NGINX Ingress controller pods metrics.
+    # metrics:
+    #   enabled: true
+    #   service:
+    #     annotations:
+    #       prometheus.io/port: "10254"
+    #       prometheus.io/scrape: "true"
+
+
+###
+###
+### ---- POSTGRESQL ----
+###
+###
+postgresql:
+  # -- Whether to deploy a PostgreSQL server to satisfy the applications requirements. To use an external PostgreSQL instance set this to `false` and configure the `externalPostgresql` parameters.
+  enabled: true
+  # -- Name override for PostgreSQL app.
+  nameOverride: posthog-postgresql
+  # -- PostgreSQL database name.
+  postgresqlDatabase: posthog
+  # -- PostgreSQL database password.
+  postgresqlPassword: postgres
+  persistence:
+    # -- Enable persistence using PVC.
+    enabled: true
+    # -- PVC Storage Request for PostgreSQL volume.
+    size: 10Gi
+
+externalPostgresql:
+  # -- External PostgreSQL service host.
+  postgresqlHost:
+  # -- External PostgreSQL service port.
+  postgresqlPort: 5432
+  # -- External PostgreSQL service database name.
+  postgresqlDatabase:
+  # -- External PostgreSQL service user.
+  postgresqlUsername:
+  # -- External PostgreSQL service password. Either this or `externalPostgresql.existingSecret` must be set.
+  postgresqlPassword:
+  # -- Name of an existing Kubernetes secret object containing the PostgreSQL password
+  existingSecret:
+  # -- Name of the key pointing to the password in your Kubernetes secret
+  existingSecretPasswordKey: postgresql-password
+
+
+###
+###
+### ---- PGBOUNCER ----
+###
+###
+pgbouncer:
+  # -- Whether to deploy a PgBouncer service to satisfy the applications requirements.
+  enabled: true
+  hpa:
+    # -- Boolean to create a HorizontalPodAutoscaler for pgbouncer
+    # -- This experimental and set up based on cpu utilization
+    # -- Adding pgbouncers can cause running out of connections for Postgres
+    enabled: false
+    # -- CPU threshold percent for pgbouncer
+    cputhreshold: 60
+    # -- Min pods for pgbouncer
+    minpods: 1
+    # -- Max pods for pgbouncer
+    maxpods: 10
+  # -- How many replicas of pgbouncer to run. Ignored if hpa is used
+  replicacount: 1
+  # -- Additional env vars to be added to the pgbouncer deployment
+  env: []
+  # -- Additional volumeMounts to be added to the pgbouncer deployment
+  extraVolumeMounts: []
+  # -- Additional volumes to be added to the pgbouncer deployment
+  extraVolumes: []
+  # -- Container security context for the pgbouncer deployment
+  securityContext:
+    enabled: false
+  # -- Pod security context for the pgbouncer deployment
+  podSecurityContext:
+    enabled: false
+
+###
+###
+### ---- REDIS ----
+###
+###
+redis:
+  # -- Whether to deploy a Redis server to satisfy the applications requirements. To use an external redis instance set this to `false` and configure the `externalRedis` parameters.
+  enabled: true
+
+  nameOverride: "posthog-redis"
+
+  fullnameOverride: ""
+
+  architecture: standalone
+
+  auth:
+    # -- Enable Redis password authentication.
+    enabled: false
+
+    # -- Redis password.
+    #    Defaults to a random 10-character alphanumeric string if not set.
+    #    NOTE: ignored unless `redis.auth.enabled` is `true` or if `redis.auth.existingSecret` is set.
+    #
+    password: ""
+
+    # -- The name of an existing secret containing the Redis credential to use.
+    #    NOTE: ignored unless `redis.auth.enabled` is `true`.
+    #          When it is set, the previous `redis.auth.password` parameter is ignored.
+    #
+    existingSecret: ""
+
+    # -- Password key to be retrieved from existing secret.
+    #    NOTE: ignored unless `redis.auth.existingSecret` parameter is set.
+    #
+    existingSecretPasswordKey: ""
+
+  master:
+    persistence:
+      # -- Enable data persistence using PVC.
+      enabled: true
+
+      # -- Persistent Volume size.
+      size: 5Gi
+    # -- Array with additional command line flags for Redis master.
+    extraFlags:
+      ## The maxmemory configuration directive is used in order to configure Redis to use a specified
+      ## amount of memory for the data set. Setting maxmemory to zero results into no memory limits
+      ## see https://redis.io/topics/lru-cache for more details
+      - "--maxmemory 400mb"
+      ## The exact behavior Redis follows when the maxmemory limit is reached is configured using the
+      ## maxmemory-policy configuration directive
+      ## allkeys-lru: evict keys by trying to remove the less recently used (LRU) keys first, in order
+      ## to make space for the new data added
+      - "--maxmemory-policy allkeys-lru"
+
+externalRedis:
+  # -- External Redis host to use.
+  host: ""
+  # -- External Redis port to use.
+  port: 6379
+  # -- Password for the external Redis. Ignored if `externalRedis.existingSecret` is set.
+  password: ""
+  # -- Name of an existing Kubernetes secret object containing the Redis password.
+  existingSecret: ""
+  # -- Name of the key pointing to the password in your Kubernetes secret.
+  existingSecretPasswordKey: ""
+
+
+###
+###
+### ---- KAFKA ----
+###
+###
+kafka:
+  # -- Whether to deploy Kafka as part of this release. To use an external Kafka instance set this to `false` and configure the `externalKafka` values.
+  enabled: true
+
+  nameOverride: posthog-kafka
+
+  fullnameOverride: ""
+
+  # -- A size-based retention policy for logs.
+  logRetentionBytes: _15_000_000_000
+
+  # -- The minimum age of a log file to be eligible for deletion due to age.
+  logRetentionHours: 24
+
+  # -- The default number of log partitions per topic.
+  numPartitions: 1
+
+  persistence:
+    # - Enable data persistence using PVC.
+    enabled: true
+    # -- PVC Storage Request for Kafka data volume.
+    size: 20Gi
+
+  zookeeper:
+    # -- Switch to enable or disable the ZooKeeper helm chart. !!! Please DO NOT override this (this chart installs Zookeeper separately) !!!
+    enabled: false
+
+  externalZookeeper:
+    # -- List of external zookeeper servers to use.
+    servers:
+      - posthog-posthog-zookeeper:2181
+
+externalKafka:
+  # - External Kafka brokers. Ignored if `kafka.enabled` is set to `true`. Multiple brokers can be provided as array/list.
+  brokers: []
+
+
+###
+###
+### ---- ZOOKEEPER ----
+###
+###
+zookeeper:
+  # -- Whether to deploy Zookeeper as part of this release.
+  enabled: true
+
+  nameOverride: posthog-zookeeper
+
+  # -- Number of ZooKeeper nodes
+  replicaCount: 1
+
+  autopurge:
+    # -- The time interval (in hours) for which the purge task has to be triggered
+    purgeInterval: 1
+
+  metrics:
+    # -- Enable Prometheus to access ZooKeeper metrics endpoint.
+    enabled: false
+    service:
+      annotations:
+        "prometheus.io/scrape": "false" # let's make Prometheus skip the scraping of the
+                                        # service as we already scrape the pods (see below
+                                        # and https://github.com/bitnami/charts/issues/10101)
+
+  ## -- Zookeeper pod(s) annotation.
+  podAnnotations:
+    # Uncomment those lines if you want Prometheus server to scrape Zookeeper pods metrics.
+    # prometheus.io/scrape: "true"
+    # prometheus.io/path: /metrics
+    # prometheus.io/port: "9141"
+
+
+###
+###
+### ---- CLICKHOUSE ----
+###
+###
+clickhouse:
+  # -- Whether to install clickhouse. If false, `clickhouse.host` must be set
+  enabled: true
+  # -- Which namespace to install clickhouse and the `clickhouse-operator` to (defaults to namespace chart is installed to)
+  namespace:
+  # -- Clickhouse cluster
+  cluster: posthog
+  # -- Clickhouse database
+  database: posthog
+  # -- Clickhouse user
+  user: admin
+  # -- Clickhouse password
+  password: a1f31e03-c88e-4ca6-a2df-ad49183d15d9
+  # -- Whether to use TLS connection connecting to ClickHouse
+  secure: false
+  # -- Whether to verify TLS certificate on connection to ClickHouse
+  verify: false
+  # -- List of external Zookeeper servers to use.
+  # externalZookeeper:
+  #   servers:
+  #     - host: host1
+  #       port: 2181
+  #     - host: host2
+  #       port: 2181
+  #     - host: host3
+  #       port: 2181
+
+  image:
+    # -- ClickHouse image repository.
+    repository: clickhouse/clickhouse-server
+    # -- ClickHouse image tag. Note: PostHog does not support all versions of ClickHouse. Please override the default only if you know what you are doing.
+    tag: "22.3.6.5"
+
+  # -- Toleration labels for clickhouse pod assignment
+  tolerations: []
+  # -- Affinity settings for clickhouse pod
+  affinity: {}
+  # -- Clickhouse resource requests/limits. See more at http://kubernetes.io/docs/user-guide/compute-resources/
+  resources: {}
+  #   limits:
+  #     cpu: 1000m
+  #     memory: 16Gi
+  #   requests:
+  #     cpu: 4000m
+  #     memory: 16Gi
+  securityContext:
+    enabled: true
+    runAsUser: 101
+    runAsGroup: 101
+    fsGroup: 101
+
+  # -- Kubernetes Service type.
+  serviceType: ClusterIP
+
+  # -- An allowlist of IP addresses or network masks the ClickHouse user is
+  # allowed to access from. By default anything within a private network will be
+  # allowed. This should suffice for most use case although to expose to other
+  # networks you will need to update this setting.
+  #
+  # For more details on usage, see https://posthog.com/docs/self-host/deploy/configuration#securing-clickhouse
+  allowedNetworkIps:
+    - "10.0.0.0/8"
+    - "172.16.0.0/12"
+    - "192.168.0.0/16"
+
+  persistence:
+    # -- Enable data persistence using PVC.
+    enabled: true
+
+    # -- Use a manually managed Persistent Volume and Claim.
+    #    If defined, PVC must be created manually before volume will be bound.
+    #
+    existingClaim: ""
+
+    # -- Persistent Volume Storage Class to use.
+    #    If defined, `storageClassName: <storageClass>`.
+    #    If set to `storageClassName: ""`, disables dynamic provisioning.
+    #    If undefined (the default) or set to `null`, no storageClassName spec is
+    #    set, choosing the default provisioner.
+    #
+    storageClass: null
+
+    # -- Persistent Volume size
+    size: 20Gi
+
+  ## -- Clickhouse user profile configuration.
+  ## You can use this to override profile settings, for example `default/max_memory_usage: 40000000000`
+  ## For the full list of settings, see:
+  ## - https://clickhouse.com/docs/en/operations/settings/settings-profiles/
+  ## - https://clickhouse.com/docs/en/operations/settings/settings/
+  profiles: {}
+
+  ## -- Default user profile configuration for Clickhouse. !!! Please DO NOT override this !!!
+  defaultProfiles:
+    default/allow_experimental_window_functions: "1"
+    default/allow_nondeterministic_mutations: "1"
+
+
+  ## -- Clickhouse cluster layout. (Experimental, use at own risk)
+  ## For a full list of options, see https://github.com/Altinity/clickhouse-operator/blob/master/docs/custom_resource_explained.md
+  ## section on clusters and layouts.
+  layout:
+    shardsCount: 1
+    replicasCount: 1
+
+  ## -- ClickHouse settings configuration.
+  ## You can use this to override settings, for example `prometheus/port: 9363`
+  ## For the full list of settings, see:
+  ## - https://clickhouse.com/docs/en/operations/settings/settings/
+  settings: {}
+    # Uncomment those lines if you want to enable the built-in Prometheus HTTP endpoint in ClickHouse.
+    # prometheus/endpoint: /metrics
+    # prometheus/port: 9363
+    # prometheus/metrics: true
+    # prometheus/events: true
+    # prometheus/asynchronous_metrics: true
+
+  ## -- Default settings configuration for ClickHouse. !!! Please DO NOT override this !!!
+  defaultSettings:
+    format_schema_path: /etc/clickhouse-server/config.d/
+
+  ## -- ClickHouse pod(s) annotation.
+  podAnnotations:
+    # Uncomment those lines if you want Prometheus server to scrape ClickHouse pods metrics.
+    # prometheus.io/scrape: "true"
+    # prometheus.io/path: /metrics
+    # prometheus.io/port: "9363"
+
+## External clickhouse configuration
+##
+externalClickhouse:
+  # -- Host of the external cluster. This is required when clickhouse.enabled is false
+  host:
+  # -- Name of the external cluster to run DDL queries on. This is required when clickhouse.enabled is false
+  cluster:
+  # -- Database name for the external cluster
+  database: posthog
+  # -- User name for the external cluster to connect to the external cluster as
+  user:
+  # -- Password for the cluster. Ignored if existingClickhouse.existingSecret is set
+  password:
+  # -- Name of an existing Kubernetes secret object containing the password
+  existingSecret:
+  # -- Name of the key pointing to the password in your Kubernetes secret
+  existingSecretPasswordKey:
+  # -- Whether to use TLS connection connecting to ClickHouse
+  secure: false
+  # -- Whether to verify TLS connection connecting to ClickHouse
+  verify: false
+
+
+cloudwatch:
+  # -- Enable cloudwatch container insights to get logs and metrics on AWS
+  enabled: false
+  # -- AWS region
+  region:
+  # -- AWS EKS cluster name
+  clusterName:
+  # -- fluentBit configuration
+  fluentBit:
+    server: "On"
+    port: 2020
+    readHead: "On"
+    readTail: "Off"
+
+
+# Provide affinity for hooks if needed
+hooks:
+  # -- Affinity settings for hooks
+  affinity: {}
+  migrate:
+    # -- Env variables for migate hooks
+    env: []
+    # -- Hook job resource limits/requests
+    resources: {}
+
+
+serviceAccount:
+  # -- Configures if a ServiceAccount with this name should be created
+  create: true
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  # -- name of the ServiceAccount to be used by access-controlled resources.
+  # @default autogenerated
+  name:
+  # -- Configures annotation for the ServiceAccount
+  annotations: {}
+
+
+###
+###
+### ---- MINIO (Object Storage system) ----
+###
+###
+minio:
+  # -- Whether to install MinIO (object storage system) or not. You can keep it disabled or rely on `externalObjectStorage` if you want to use a managed object storage service (AWS S3, Google Cloud Storage, ...).
+  enabled: false
+  auth:
+    # -- MinIO root username
+    rootUser: root-user
+    # -- MinIO root password
+    rootPassword: root-password-change-me-please
+    # -- Use existing secret for credentials details (`auth.rootUser` and `auth.rootPassword` will be ignored and picked up from this secret). The secret has to contain the keys `root-user` and `root-password`)
+    existingSecret:
+  persistence:
+    # -- Enable MinIO data persistence using PVC.
+    enabled: true
+  # -- Comma, semi-colon or space separated list of buckets to create at initialization (only in standalone mode)
+  defaultBuckets: "posthog"
+  # -- Disable MinIO Web UI
+  disableWebUI: true
+
+  # We are overriding the default service ports as they collide with ClickHouse
+  service:
+    ports:
+      # -- MinIO API service port
+      api: "19000"
+      # -- MinIO Console service port
+      console: "19001"
+
+  ## -- MinIO pod(s) annotation.
+  podAnnotations:
+    # Uncomment those lines if you want Prometheus server to scrape MinIO pods metrics.
+    # prometheus.io/scrape: "true"
+    # prometheus.io/path: "/minio/v2/metrics/cluster"
+    # prometheus.io/port: "9000"
+
+## External Object Storage configuration
+##
+externalObjectStorage:
+  # -- Endpoint of the external object storage. e.g. https://s3.us-east-1.amazonaws.com
+  endpoint:
+  # -- Host of the external object storage. Deprecated: use endpoint instead
+  host:
+  # -- Port of the external object storage. Deprecated: use endpoint instead
+  port:
+  # -- Bucket name to use.
+  bucket:
+  # -- Name of an existing Kubernetes secret object containing the `access_key_id` and `secret_access_key`. The secret has to contain the keys `root-user` and `root-password`).
+  existingSecret:
+
+###
+###
+### ---- Grafana ----
+###
+###
+grafana:
+  # -- Whether to install Grafana or not.
+  enabled: false
+
+  # -- Sidecar configuration to automagically pull the dashboards from the `charts/posthog/grafana-dashboard` folder. See [official docs](https://github.com/grafana/helm-charts/blob/main/charts/grafana/README.md) for more info.
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      folderAnnotation: grafana_folder
+      provider:
+        foldersFromFilesStructure: true
+
+  # -- Configure Grafana datasources. See [docs](http://docs.grafana.org/administration/provisioning/#datasources) for more info.
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+
+      # Comment the snippet below if you are running with `prometheus.enabled: false`
+      - name: Prometheus
+        type: prometheus
+        url: http://posthog-prometheus-server
+        access: proxy
+        isDefault: true
+
+      # Comment the snippet below if you are running with `loki.enabled: false`
+      - name: Loki
+        type: loki
+        url: http://posthog-loki:3100
+        access: proxy
+        isDefault: false
+
+
+###
+###
+### ---- Loki ----
+###
+###
+loki:
+  # -- Whether to install Loki or not.
+  enabled: false
+
+
+###
+###
+### ---- Promtail ----
+###
+###
+promtail:
+  # -- Whether to install Promtail or not.
+  enabled: false
+  config:
+    lokiAddress: http://posthog-loki:3100/loki/api/v1/push
+
+
+###
+###
+### ---- Prometheus ----
+###
+###
+prometheus:
+  # -- Whether to enable a minimal prometheus installation for getting alerts/monitoring the stack
+  enabled: false
+
+  alertmanager:
+    # -- If false, alertmanager will not be installed
+    enabled: true
+
+    # -- alertmanager resource requests and limits
+    resources:
+      limits:
+        cpu: 100m
+      requests:
+        cpu: 50m
+
+  kubeStateMetrics:
+    # -- If false, kube-state-metrics sub-chart will not be installed
+    enabled: true
+
+  nodeExporter:
+    # -- If false, node-exporter will not be installed
+    enabled: true
+
+    # -- node-exporter resource limits & requests
+    resources:
+      limits:
+        cpu: 100m
+        memory: 50Mi
+      requests:
+        cpu: 50m
+        memory: 30Mi
+
+  pushgateway:
+    # -- If false, pushgateway will not be installed
+    enabled: false
+
+  alertmanagerFiles:
+    # -- alertmanager configuration rules. See https://prometheus.io/docs/alerting/latest/configuration/
+    alertmanager.yml:
+      global: {}
+      receivers:
+        - name: default-receiver
+      route:
+        group_by: [alertname]
+        receiver: default-receiver
+
+  serverFiles:
+    # -- Alerts configuration, see https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/
+    alerting_rules.yml:
+      groups:
+        - name: PostHog alerts
+          rules:
+            # Alert for any pod that is down for >5 minutes.
+            - alert: PodDown
+              expr: up{job="kubernetes-pods"} == 0
+              for: 1m
+              labels:
+                severity: alert
+              annotations:
+                summary: "Pod {{ $labels.kubernetes_pod_name }} down."
+                description: "Pod {{ $labels.kubernetes_pod_name }} in namespace {{ $labels.kubernetes_namespace }} down for more than 5 minutes."
+            - alert: PodFrequentlyRestarting
+              expr: increase(kube_pod_container_status_restarts_total[1h]) > 5
+              for: 10m
+              labels:
+                severity: warning
+              annotations:
+                description:
+                  Pod {{$labels.namespace}}/{{$labels.pod}} was restarted {{$value}}
+                  times within the last hour
+                summary: Pod is restarting frequently
+            # Requires nodeExporter.enabled
+            - alert: VolumeRemainingCapacityLowTest
+              expr: kubelet_volume_stats_used_bytes/kubelet_volume_stats_capacity_bytes >= 0.85
+              for: 5m
+              labels:
+                severity: page
+              annotations:
+                description: "Persistent volume claim {{ $labels.persistentvolumeclaim }} disk usage is above 85% for past 5 minutes"
+                summary: "Kubernetes {{ $labels.persistentvolumeclaim }} is full (host {{ $labels.kubernetes_io_hostname }})"
+
+
+###
+###
+### ---- prometheus-statsd-exporter ----
+###
+###
+prometheus-statsd-exporter:
+  # -- Whether to install the `prometheus-statsd-exporter` or not.
+  enabled: false
+  # -- Map of annotations to add to the pods.
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /metrics
+    prometheus.io/port: "9102"
+
+externalStatsd:
+  # -- External Statsd host to use.
+  host:
+  # -- External Statsd port to use.
+  port:
+
+
+###
+###
+### ---- prometheus-kafka-exporter ----
+###
+###
+prometheus-kafka-exporter:
+  # -- Whether to install the `prometheus-kafka-exporter` or not.
+  enabled: false
+
+  # -- We want to pin to image tag `v1.4.2` as it is currently the only
+  # available version working on Apple M1 (otherwise we break local development).
+  #
+  # TODO: remove the override once `prometheus-kafka-exporter` will default to this version.
+  #
+  image:
+    tag: v1.4.2
+
+  # -- Map of annotations to add to the pods.
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /metrics
+    prometheus.io/port: "9308"
+
+  # -- Specify the target Kafka brokers to monitor.
+  kafkaServer:
+    - posthog-posthog-kafka:9092
+
+
+###
+###
+### ---- prometheus-postgres-exporter ----
+###
+###
+prometheus-postgres-exporter:
+  # -- Whether to install the `prometheus-postgres-exporter` or not.
+  enabled: false
+
+  # -- Map of annotations to add to the pods.
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /metrics
+    prometheus.io/port: "9187"
+
+  # -- Configuration options.
+  config:
+    datasource:
+      host: posthog-posthog-postgresql
+      user: postgres
+      passwordSecret:
+        name: posthog-posthog-postgresql
+        key: postgresql-password
+
+
+###
+###
+### ---- prometheus-redis-exporter ----
+###
+###
+prometheus-redis-exporter:
+  # -- Whether to install the `prometheus-redis-exporter` or not.
+  enabled: false
+
+  # -- Map of annotations to add to the pods.
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /metrics
+    prometheus.io/port: "9121"
+
+  # -- Specify the target Redis instance to monitor.
+  redisAddress: redis://posthog-posthog-redis-master:6379
+
+
+###
+###
+### ---- MISC ----
+###
+###
+installCustomStorageClass: false
+
+busybox:
+  # -- Specify the image to use for e.g. init containers
+  image: busybox:1.34

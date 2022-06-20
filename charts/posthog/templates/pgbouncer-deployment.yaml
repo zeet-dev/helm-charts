@@ -1,0 +1,105 @@
+{{- if .Values.pgbouncer.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "posthog.fullname" . }}-pgbouncer
+  labels: {{- include "_snippet-metadata-labels-common" . | nindent 4 }}
+  annotations: {{- include "_snippet-metadata-annotations-common" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+        app: {{ template "posthog.fullname" . }}
+        release: "{{ .Release.Name }}"
+        role: pgbouncer
+  {{- if not .Values.pgbouncer.hpa.enabled }}
+  replicas: {{ .Values.pgbouncer.replicacount }}
+  {{- end }}
+  template:
+    metadata:
+      annotations:
+        checksum/secrets.yaml: {{ include (print $.Template.BasePath "/secrets.yaml") . | sha256sum }}
+      labels:
+        app: {{ template "posthog.fullname" . }}
+        release: "{{ .Release.Name }}"
+        role: pgbouncer
+        {{- if .Values.pgbouncer.podLabels }}
+{{ toYaml .Values.pgbouncer.podLabels | indent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ template "posthog.serviceAccountName" . }}
+      {{- if .Values.pgbouncer.affinity }}
+      affinity:
+{{ toYaml .Values.pgbouncer.affinity | indent 8 }}
+      {{- end }}
+      {{- if .Values.pgbouncer.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.pgbouncer.nodeSelector | indent 8 }}
+      {{- end }}
+      {{- if .Values.pgbouncer.tolerations }}
+      tolerations:
+{{ toYaml .Values.pgbouncer.tolerations | indent 8 }}
+      {{- end }}
+      {{- if .Values.pgbouncer.schedulerName }}
+      schedulerName: "{{ .Values.pgbouncer.schedulerName }}"
+      {{- end }}
+      {{- if .Values.pgbouncer.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.pgbouncer.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}     
+      containers:
+      - name: {{ .Chart.Name }}-pgbouncer
+      {{- if .Values.pgbouncer.image }}
+        image: "{{ default "edoburu/pgbouncer" .Values.pgbouncer.image.repository }}:{{ default "1.12.0" .Values.pgbouncer.image.tag }}"
+        imagePullPolicy: {{ default "IfNotPresent" .Values.pgbouncer.image.pullPolicy }}
+      {{- else }}
+        image: "edoburu/pgbouncer:1.12.0"
+        imagePullPolicy: "IfNotPresent"
+      {{- end }}
+        ports:
+        - containerPort: 6543
+        env:
+        - name: DB_USER
+          value: {{ include "posthog.postgresql.username" . }}
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "posthog.postgresql.secretName" . }}
+              key: {{ include "posthog.postgresql.secretPasswordKey" . }}
+        - name: DB_HOST
+          value: {{ include "posthog.postgresql.host" . }}
+        - name: DB_PORT
+          value: {{ include "posthog.postgresql.port" . | quote }}
+        - name: DB_NAME
+          value: {{ include "posthog.postgresql.database" . }}
+        - name: LISTEN_PORT
+          value: "6543"
+        - name: MAX_CLIENT_CONN
+          value: "1000"
+        - name: POOL_MODE
+          value: "transaction"
+{{- if .Values.pgbouncer.env }}
+{{ toYaml .Values.pgbouncer.env | indent 8 }}
+{{- end }}
+        readinessProbe:
+          tcpSocket:
+            port: 6543
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: 6543
+          initialDelaySeconds: 15
+          periodSeconds: 20
+      {{- if .Values.pgbouncer.extraVolumeMounts }}
+        volumeMounts: {{- toYaml .Values.pgbouncer.extraVolumeMounts | nindent 8 }}
+      {{- end }}
+{{- if .Values.pgbouncer.resources }}
+        resources:
+{{ toYaml .Values.pgbouncer.resources | indent 12 }}
+{{- end }}
+        {{- if .Values.pgbouncer.securityContext.enabled }}
+        securityContext: {{- omit .Values.pgbouncer.securityContext "enabled" | toYaml | nindent 12 }}
+        {{- end }}     
+    {{- if .Values.pgbouncer.extraVolumes }}
+      volumes: {{- toYaml .Values.pgbouncer.extraVolumes | nindent 6 }}
+    {{- end }}
+{{- end }}
