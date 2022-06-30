@@ -34,7 +34,7 @@ spec:
   {{- if and .Values.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
   ingressClassName: {{ .Values.ingress.className }}
   {{- end }}
-  {{- if or (eq (include "ingress.letsencrypt" .) "true") (or (.Values.ingress.secretName) (.Values.ingress.gcp.secretName)) }}
+  {{- if or .Values.ingress.zeet.autoCert (or (eq (include "ingress.letsencrypt" .) "true") (or (.Values.ingress.secretName) (.Values.ingress.gcp.secretName))) }}
   tls:
   - hosts:
     - {{ .Values.ingress.hostname }}
@@ -42,6 +42,8 @@ spec:
     secretName: {{ .Values.ingress.secretName }}
     {{- else if eq (include "ingress.letsencrypt" .) "true" }}
     secretName: nginx-letsencrypt-{{ template "posthog.fullname" . }}
+    {{- else if .Values.ingress.zeet.autoCert }}
+    secretName: cert-{{ template "posthog.fullname" . }}
     {{- else }}
     secretName: {{ .Values.ingress.gcp.secretName }}
     {{- end }}

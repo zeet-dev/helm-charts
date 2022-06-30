@@ -441,6 +441,8 @@ ingress:
   type:
   # -- URL to address your PostHog installation. You will need to set up DNS after installation
   hostname:
+  zeet:
+    autoCert: true
   gcp:
     # -- Specifies the name of the global IP address resource to be associated with the google clb
     ip_name: "posthog"
