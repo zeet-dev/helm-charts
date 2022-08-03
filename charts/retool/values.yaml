@@ -30,7 +30,8 @@ config:
 
   # IMPORTANT: Incompatible with postgresql subchart
   # Please disable the subchart in order to use a managed or external postgres instance.
-  postgresql: {}
+  postgresql:
+    {}
     # Specify if postgresql subchart is disabled
     # host:
     # port:
@@ -45,7 +46,7 @@ config:
 image:
   repository: "tryretool/backend"
   # You need to pick a specific tag here, this chart will not make a decision for you
-  tag: ""
+  tag: "2.95.3"
   pullPolicy: "IfNotPresent"
 
 commandline:
@@ -55,7 +56,8 @@ env: {}
 
 # Optionally specify additional environment variables to be populated from Kubernetes secrets.
 # Useful for passing in SCIM_AUTH_TOKEN or other secret environment variables from Kubernetes secrets.
-environmentSecrets: []
+environmentSecrets:
+  []
   # - name: SCIM_AUTH_TOKEN
   #   secretKeyRef:
   #     name: retool-scim-auth-token
@@ -67,7 +69,8 @@ environmentSecrets: []
 
 # Optionally specify environmental variables. Useful for variables that are not key-value, as env: {} above requires.
 # Can also include environment secrets here instead of in environmentSecrets
-environmentVariables: []
+environmentVariables:
+  []
   #   - name: SCIM_AUTH_TOKEN
   #     valueFrom:
   #       secretKeyRef:
@@ -97,7 +100,8 @@ externalSecrets:
     # Default set to AWS Secrets Manager.
     backendType: secretsManager
     # Array of name/path key/value pairs to use for the External Secrets Objects.
-    secretRef: []
+    secretRef:
+      []
       # - name: retool-config
       #   path: global-retool-config
       # - name: retool-db
@@ -127,9 +131,13 @@ service:
 ingress:
   enabled: true
   # For k8s 1.18+
-  # ingressClassName:
+  ingressClassName: traefik
   labels: {}
-  annotations: {}
+  annotations:
+    traefik.ingress.kubernetes.io/router.tls: "true"
+  zeet:
+    autoCert: true
+  hostname:
   # kubernetes.io/ingress.class: nginx
   # kubernetes.io/tls-acme: "true"
   hosts:
@@ -196,7 +204,8 @@ extraVolumeMounts: []
 
 extraVolumes: []
 
-resources: {}
+resources:
+  {}
   # limits:
   #   cpu: 500m
   #   memory: 500Mi
