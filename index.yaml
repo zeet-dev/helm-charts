@@ -94,6 +94,27 @@ entries:
     urls:
     - https://github.com/zeet-dev/helm-charts/releases/download/posthog-0.23.2/posthog-0.23.2.tgz
     version: 0.23.2
+  retool:
+  - apiVersion: v2
+    appVersion: 2.95.3
+    created: "2022-08-03T23:43:23.130743471Z"
+    dependencies:
+    - condition: postgresql.enabled
+      name: postgresql
+      repository: https://charts.bitnami.com/bitnami
+      version: 10.14.3
+    description: A Helm chart for Kubernetes
+    digest: 7360c6388c79ca55e97ec4c18f87ad2e2757197835b77d47359052622503bd41
+    maintainers:
+    - email: engineering+helm@retool.com
+      name: Retool Engineering
+    - email: support@zeet.co
+      name: zeet
+    name: retool
+    type: application
+    urls:
+    - https://github.com/zeet-dev/helm-charts/releases/download/retool-0.4.11/retool-0.4.11.tgz
+    version: 0.4.11
   tailscale-relay:
   - apiVersion: v2
     appVersion: v1.24.2
@@ -110,4 +131,4 @@ entries:
     urls:
     - https://github.com/zeet-dev/helm-charts/releases/download/tailscale-relay-0.1.5/tailscale-relay-0.1.5.tgz
     version: 0.1.5
-generated: "2022-06-30T00:48:30.353297198Z"
+generated: "2022-08-03T23:43:23.130748471Z"
