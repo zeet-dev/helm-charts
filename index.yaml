@@ -1,5 +1,16 @@
 apiVersion: v1
 entries:
+  elasticsearch-agent-chart:
+  - apiVersion: v2
+    appVersion: 0.1.0
+    created: "2023-11-10T00:59:09.084117667Z"
+    description: A Helm chart for Kubernetes
+    digest: a7dd3fbc643e24ae766c48cc982cee6c59bc2649bdecad6d102a7c5b6daf4cc8
+    name: elasticsearch-agent-chart
+    type: application
+    urls:
+    - https://github.com/zeet-dev/helm-charts/releases/download/elasticsearch-agent-chart-0.1.0/elasticsearch-agent-chart-0.1.0.tgz
+    version: 0.1.0
   enterprise-gateway:
   - apiVersion: v2
     appVersion: 3.2.2
@@ -147,4 +158,4 @@ entries:
     urls:
     - https://github.com/zeet-dev/helm-charts/releases/download/tailscale-relay-0.1.5/tailscale-relay-0.1.5.tgz
     version: 0.1.5
-generated: "2023-05-04T17:54:50.100180011Z"
+generated: "2023-11-10T00:59:09.084126093Z"
