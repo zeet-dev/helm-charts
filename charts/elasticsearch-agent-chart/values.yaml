@@ -1,0 +1,25 @@
+elasticAgent:
+  elasticAgent:
+    containerSecurityContext:
+      runAsUser: 0
+    env:
+      elasticNetinfo: "false"
+      fleetEnroll: "1"
+      fleetEnrollmentToken: token-id
+      fleetInsecure: "true"
+      fleetUrl: https://fleet-server:8220
+      kibanaFleetPassword: changeme
+      kibanaFleetUsername: elastic
+      kibanaHost: http://kibana:5601
+    image:
+      repository: docker.elastic.co/beats/elastic-agent
+      tag: 8.11.0
+    resources:
+      limits:
+        memory: 700Mi
+      requests:
+        cpu: 100m
+        memory: 400Mi
+  serviceAccount:
+    annotations: {}
+kubernetesClusterDomain: cluster.local
