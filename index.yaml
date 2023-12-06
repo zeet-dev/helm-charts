@@ -153,6 +153,18 @@ entries:
     urls:
     - https://github.com/zeet-dev/helm-charts/releases/download/retool-0.4.11/retool-0.4.11.tgz
     version: 0.4.11
+  stable-diffusion-webui:
+  - apiVersion: v2
+    appVersion: 1.6.0
+    created: "2023-12-06T21:13:26.876743751Z"
+    description: Deploy stable-diffusion-webui from AUTOMATIC1111, using the docker
+      image maintained by goolashe
+    digest: d5206972e3a94256de292402cea10a8557abefc3d14b5399b8852fee56caaa1e
+    name: stable-diffusion-webui
+    type: application
+    urls:
+    - https://github.com/zeet-dev/helm-charts/releases/download/stable-diffusion-webui-0.1.0/stable-diffusion-webui-0.1.0.tgz
+    version: 0.1.0
   tailscale-relay:
   - apiVersion: v2
     appVersion: v1.24.2
@@ -169,4 +181,4 @@ entries:
     urls:
     - https://github.com/zeet-dev/helm-charts/releases/download/tailscale-relay-0.1.5/tailscale-relay-0.1.5.tgz
     version: 0.1.5
-generated: "2023-11-10T01:41:20.432371539Z"
+generated: "2023-12-06T21:13:26.876750463Z"
