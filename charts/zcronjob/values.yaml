@@ -1,0 +1,10 @@
+schedule: '* * * * *'
+failedJobsHistoryLimit: 1
+successfulJobsHistoryLimit: 3
+image:
+  tag: "latest"
+  repository: hello-world
+  imagePullPolicy: IfNotPresent
+timeZone: US/Pacific
+kubernetesClusterDomain: cluster.local
+restartPolicy: Always

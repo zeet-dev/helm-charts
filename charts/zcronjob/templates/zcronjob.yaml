@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "zcronjob.fullname" . }}-{{ .Release.Name }}
+  labels:
+  {{- include "zcronjob.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.schedule | quote }}
+  timeZone: {{ .Values.timeZone | quote }}
+  concurrencyPolicy: Allow
+  successfulJobsHistoryLimit: {{ .Values.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.failedJobsHistoryLimit }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: {{ .Values.image.repository }}
+            image: {{ .Values.image.repository }}:{{ .Values.image.tag | default "latest" }}
+            imagePullPolicy: {{ .Values.image.imagePullPolicy }}
+            {{- if .Values.image.command }}
+            command: {{ .Values.image.command }}
+            {{- end }}
+            env:
+            - name: KUBERNETES_CLUSTER_DOMAIN
+              value: {{ quote .Values.kubernetesClusterDomain }}
+            resources: {}
+          restartPolicy: {{ .Values.restartPolicy }}
