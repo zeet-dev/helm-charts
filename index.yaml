@@ -181,4 +181,15 @@ entries:
     urls:
     - https://github.com/zeet-dev/helm-charts/releases/download/tailscale-relay-0.1.5/tailscale-relay-0.1.5.tgz
     version: 0.1.5
-generated: "2023-12-06T21:13:26.876750463Z"
+  zcronjob:
+  - apiVersion: v2
+    appVersion: 0.1.0
+    created: "2024-02-16T20:43:36.038886274Z"
+    description: A Helm chart that encapsulates a Kubernetes CronJob creation
+    digest: fbf5b39ab60600c1ba2bd2569baa11297e2a11802d6708dff04d209731a93dac
+    name: zcronjob
+    type: application
+    urls:
+    - https://github.com/zeet-dev/helm-charts/releases/download/zcronjob-0.1.0/zcronjob-0.1.0.tgz
+    version: 0.1.0
+generated: "2024-02-16T20:43:36.038895001Z"
