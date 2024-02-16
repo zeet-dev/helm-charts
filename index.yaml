@@ -184,6 +184,16 @@ entries:
   zcronjob:
   - apiVersion: v2
     appVersion: 0.1.0
+    created: "2024-02-16T21:53:52.689903876Z"
+    description: A Helm chart that encapsulates a Kubernetes CronJob creation
+    digest: 2be7a1ac8cd28bdec025d9a54639188e103ed0713993d641d7aa43377f87ba47
+    name: zcronjob
+    type: application
+    urls:
+    - https://github.com/zeet-dev/helm-charts/releases/download/zcronjob-0.2.0/zcronjob-0.2.0.tgz
+    version: 0.2.0
+  - apiVersion: v2
+    appVersion: 0.1.0
     created: "2024-02-16T20:43:36.038886274Z"
     description: A Helm chart that encapsulates a Kubernetes CronJob creation
     digest: fbf5b39ab60600c1ba2bd2569baa11297e2a11802d6708dff04d209731a93dac
@@ -192,4 +202,4 @@ entries:
     urls:
     - https://github.com/zeet-dev/helm-charts/releases/download/zcronjob-0.1.0/zcronjob-0.1.0.tgz
     version: 0.1.0
-generated: "2024-02-16T20:43:36.038895001Z"
+generated: "2024-02-16T21:53:52.689912853Z"
