@@ -1,0 +1,9 @@
+schedule: '* * * * *'
+failedJobsHistoryLimit: 1
+successfulJobsHistoryLimit: 3
+image:
+  tag: "latest"
+  repository: hello-world
+  imagePullPolicy: IfNotPresent
+kubernetesClusterDomain: cluster.local
+restartPolicy: OnFailure
